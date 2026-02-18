@@ -17,6 +17,7 @@ cursor = con.cursor()
 cursor.execute("DROP DATABASE IF EXISTS commodities;")
 cursor.execute("CREATE DATABASE commodities;")
 
+# gold
 df = pd.read_csv("data/gold_prices.csv", sep=";")
 df = df.drop(columns=["Volume"])
 df["Date"] = pd.to_datetime(df["Date"], format="%Y.%m.%d %H:%M")
@@ -28,15 +29,65 @@ df.to_sql("gold", engine, if_exists="replace", index=False)
 # Add primary key to database table
 with engine.connect() as conn:
     conn.execute(text('ALTER TABLE gold ADD PRIMARY KEY ("Date");'))
-    conn.execute(text("""
-        ALTER TABLE gold
-        ALTER COLUMN "Open"  TYPE numeric(10,2),
-        ALTER COLUMN "High"  TYPE numeric(10,2),
-        ALTER COLUMN "Low"   TYPE numeric(10,2),
-        ALTER COLUMN "Close" TYPE numeric(10,2);
-    """))
     conn.commit()
 
+# oil
+df = pd.read_csv("data_pipeline/data/oil_prices.csv")
+df["Date"] = pd.to_datetime(df["Date"])
+df = df[["Date", "Open", "High", "Low", "Close"]]
+engine = create_engine("postgresql+psycopg2://postgres:password@localhost:5432/commodities")
+df.to_sql("oil", engine, if_exists="replace", index=False)
+
+# Add primary key to database table
+with engine.connect() as conn:
+    conn.execute(text('ALTER TABLE oil ADD PRIMARY KEY ("Date");'))
+    conn.commit()
+
+cursor.close()
+conn.close()
+
+
+# gas
+df = pd.read_csv("data_pipeline/data/gas_prices.csv")
+df["Date"] = pd.to_datetime(df["Date"])
+df = df[["Date", "Open", "High", "Low", "Close"]]
+engine = create_engine("postgresql+psycopg2://postgres:password@localhost:5432/commodities")
+df.to_sql("gas", engine, if_exists="replace", index=False)
+
+# Add primary key to database table
+with engine.connect() as conn:
+    conn.execute(text('ALTER TABLE gas ADD PRIMARY KEY ("Date");'))
+    conn.commit()
+
+cursor.close()
+conn.close()
+
+# wheat
+df = pd.read_csv("data_pipeline/data/wheat_prices.csv")
+df["Date"] = pd.to_datetime(df["Date"])
+df = df[["Date", "Open", "High", "Low", "Close"]]
+engine = create_engine("postgresql+psycopg2://postgres:password@localhost:5432/commodities")
+df.to_sql("wheat", engine, if_exists="replace", index=False)
+
+# Add primary key to database table
+with engine.connect() as conn:
+    conn.execute(text('ALTER TABLE wheat ADD PRIMARY KEY ("Date");'))
+    conn.commit()
+
+cursor.close()
+conn.close()
+
+# silver
+df = pd.read_csv("data_pipeline/data/silver_prices.csv")
+df["Date"] = pd.to_datetime(df["Date"])
+df = df[["Date", "Open", "High", "Low", "Close"]]
+engine = create_engine("postgresql+psycopg2://postgres:password@localhost:5432/commodities")
+df.to_sql("silver", engine, if_exists="replace", index=False)
+
+# Add primary key to database table
+with engine.connect() as conn:
+    conn.execute(text('ALTER TABLE silver ADD PRIMARY KEY ("Date");'))
+    conn.commit()
 
 cursor.close()
 conn.close()
