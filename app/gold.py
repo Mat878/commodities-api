@@ -18,10 +18,10 @@ async def gold():
     return {
         "symbol": "XAU/USD",
         "date": row[0].date(),
-        "open": row[1],
-        "high": row[2],
-        "low": row[3],
-        "close": None
+        "open": round(row[1], 2),
+        "high": round(row[2], 2),
+        "low": round(row[3], 2),
+        "close": None,
     }
 
 @router.get("/gold/history")
@@ -82,6 +82,6 @@ async def gold_analytics():
         "sma_7": round(sma_7, 2),
         "sma_30": round(sma_30, 2),
         "sma_200": round(sma_200, 2),
-        "fifty_two_week_high": fifty_two_week_high,
-        "fifty_two_week_low": fifty_two_week_low
+        "fifty_two_week_high": round(fifty_two_week_high, 2),
+        "fifty_two_week_low": round(fifty_two_week_low, 2)
     }
