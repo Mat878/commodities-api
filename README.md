@@ -1,4 +1,4 @@
-# Commodity Price Api
+# Commodity Price API
 A FastAPI service that provides daily and historical commodity price data (gold, silver, oil, gas, wheat) backed by a PostgreSQL database and an automated data pipeline. It includes 5 year historical charts, moving-average analytics and 52 week high/low insights.
 
 ## Dependencies
@@ -21,23 +21,14 @@ A FastAPI service that provides daily and historical commodity price data (gold,
 4. Start the FastAPI server: uvicorn main:app --reload
 
 ## API Endpoints
-/gold
-/gold/history
-/gold/analytics
+Gold:    /gold, /gold/history, /gold/analytics
 
-/silver
-/silver/history
-/silver/analytics
+Silver:  /silver, /silver/history, /silver/analytics
 
-/oil
-/oil/history
-/oil/analytics
+Oil:     /oil, /oil/history, /oil/analytics
 
-/gas
-/gas/history
-/gas/analytics
+Gas:     /gas, /gas/history, /gas/analytics
 
-/wheat
-/wheat/history
-/wheat/analytics
+Wheat:   /wheat, /wheat/history, /wheat/analytics
+
 
