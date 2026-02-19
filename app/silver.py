@@ -4,14 +4,22 @@ from fastapi.responses import FileResponse
 from sqlalchemy import create_engine, text
 import pandas as pd
 import matplotlib.pyplot as plt
+from data_pipeline import latest_data
 
 router = APIRouter()
-engine = create_engine("postgresql+psycopg2://postgres:password@localhost:5432/commodities")
+engine = create_engine(
+    "postgresql+psycopg2://postgres:password@localhost:5432/commodities"
+)
+
 
 @router.get("/silver")
 async def silver():
+    """Return the latest silver price"""
+    latest_data.main()
     with engine.connect() as conn:
-        row = conn.execute(text('SELECT * FROM silver ORDER BY "Date" DESC LIMIT 1;')).fetchone()
+        row = conn.execute(
+            text('SELECT * FROM silver ORDER BY "Date" DESC LIMIT 1;')
+        ).fetchone()
     return {
         "symbol": "SI",
         "date": row[0].date(),
@@ -21,8 +29,11 @@ async def silver():
         "close": round(row[4], 2),
     }
 
+
 @router.get("/silver/history")
 async def silver_history():
+    """Return a 5‑year silver price chart as an image"""
+    latest_data.main()
     df = pd.read_sql('SELECT "Date", "Close" FROM silver ORDER BY "Date"', engine)
     df["Date"] = pd.to_datetime(df["Date"])
 
@@ -31,52 +42,75 @@ async def silver_history():
     plt.title("5 Year Silver Price in USD/oz")
     plt.xlabel("Year")
     plt.ylabel("Price")
-    plt.savefig('silver_history.png', bbox_inches='tight')
-        
+    plt.savefig("silver_history.png", bbox_inches="tight")
+
     image_path = Path("silver_history.png")
     return FileResponse(image_path)
 
+
 @router.get("/silver/analytics")
 async def silver_analytics():
+    """Return moving averages and 52 week high/low analytics"""
+    latest_data.main()
     with engine.connect() as conn:
-        sma_7 = conn.execute(text("""
+        sma_7 = conn.execute(
+            text(
+                """
             SELECT AVG("Close")
             FROM silver
             WHERE "Date" > CURRENT_DATE - INTERVAL '7 days';
-            """)).scalar()
-    
+            """
+            )
+        ).scalar()
+
     with engine.connect() as conn:
-        sma_30 = conn.execute(text("""
+        sma_30 = conn.execute(
+            text(
+                """
             SELECT AVG("Close")
             FROM silver
             WHERE "Date" > CURRENT_DATE - INTERVAL '30 days';
-            """)).scalar()
-    
+            """
+            )
+        ).scalar()
+
     with engine.connect() as conn:
-        sma_200 = conn.execute(text("""
+        sma_200 = conn.execute(
+            text(
+                """
             SELECT AVG("Close")
             FROM silver
             WHERE "Date" > CURRENT_DATE - INTERVAL '200 days';
-            """)).scalar()
-    
+            """
+            )
+        ).scalar()
+
     with engine.connect() as conn:
-        fifty_two_week_high = conn.execute(text("""
+        fifty_two_week_high = conn.execute(
+            text(
+                """
             SELECT MAX("High")
             FROM silver
             WHERE "Date" >= CURRENT_DATE - INTERVAL '365 days';
-            """)).scalar()
+            """
+            )
+        ).scalar()
 
     with engine.connect() as conn:
-        fifty_two_week_low = conn.execute(text("""
+        fifty_two_week_low = conn.execute(
+            text(
+                """
             SELECT MIN("Low")
             FROM silver
             WHERE "Date" >= CURRENT_DATE - INTERVAL '365 days';
-            """)).scalar()
+            """
+            )
+        ).scalar()
 
     return {
         "sma_7": round(sma_7, 2),
         "sma_30": round(sma_30, 2),
         "sma_200": round(sma_200, 2),
         "fifty_two_week_high": round(fifty_two_week_high, 2),
-        "fifty_two_week_low": round(fifty_two_week_low, 2)
+        "fifty_two_week_low": round(fifty_two_week_low, 2),
     }

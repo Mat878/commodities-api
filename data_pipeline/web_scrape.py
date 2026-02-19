@@ -6,9 +6,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 from datetime import date, timedelta
 from sqlalchemy import create_engine, text
 
-engine = create_engine("postgresql+psycopg2://postgres:password@localhost:5432/commodities")
+engine = create_engine(
+    "postgresql+psycopg2://postgres:password@localhost:5432/commodities"
+)
+
 
 def get_dates():
+    """Obtain the dates which currently don't have price information"""
     with engine.connect() as conn:
         start_date = conn.execute(text('SELECT MAX("Date") FROM gold')).scalar()
 
@@ -30,10 +34,13 @@ def create_driver():
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--window-size=1920,1080")
 
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    return webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()), options=chrome_options
+    )
 
 
 def scrape_data(d):
+    """Webscrape the relevant information and format it accordingly"""
     url = "today/" if d == date.today() else d.strftime("%Y/%B/%#d/")
 
     driver = create_driver()
@@ -60,30 +67,35 @@ def scrape_data(d):
         "open": open_price,
         "high": high_price,
         "low": low_price,
-        "close": close_price
+        "close": close_price,
     }
 
 
 def save(record):
+    """Save the webscraped data into the database table"""
     with engine.begin() as conn:
         conn.execute(
-            text("""
+            text(
+                """
                 INSERT INTO gold ("Date", "Open", "High", "Low", "Close")
-                VALUES (:d, :o, :h, :l, :c)"""),
+                VALUES (:d, :o, :h, :l, :c)"""
+            ),
             {
                 "d": record["date"],
                 "o": record["open"],
                 "h": record["high"],
                 "l": record["low"],
-                "c": record["close"]
-            })
+                "c": record["close"],
+            },
+        )
+
 
 def check_latest():
     with engine.connect() as conn:
         conn.execute(text('DELETE FROM gold WHERE "Close" IS NULL;'))
 
 
-def run():
+def main():
     check_latest()
     dates = get_dates()
 
@@ -91,5 +103,6 @@ def run():
         record = scrape_data(d)
         save(record)
 
+
 if __name__ == "__main__":
-    run()
+    main()

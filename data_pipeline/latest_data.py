@@ -2,60 +2,38 @@ from sqlalchemy import create_engine, text
 import yfinance as yf
 import pandas as pd
 
-# oil
-engine = create_engine("postgresql+psycopg2://postgres:password@localhost:5432/commodities")
-with engine.connect() as conn:
-    start_date = conn.execute(text('SELECT MAX("Date") FROM oil')).scalar()
-
-oil = yf.Ticker("BZ=F")
-df = oil.history(start=start_date, interval="1d")
-
-df = df.reset_index()
-df = df[["Date", "Open", "High", "Low", "Close"]]
-df["Date"] = df["Date"].dt.tz_localize(None)
-df = df[df["Date"] > start_date]
-
-df.to_sql("oil", engine, if_exists="append", index=False)
+engine = create_engine(
+    "postgresql+psycopg2://postgres:password@localhost:5432/commodities"
+)
 
 
-# gas
-with engine.connect() as conn:
-    start_date = conn.execute(text('SELECT MAX("Date") FROM gas')).scalar()
+def update_commodity(table_name, ticker):
+    """Obtain the latest data ensuring commodity tables are up to date"""
+    with engine.connect() as conn:
+        start_date = conn.execute(
+            text(f'SELECT MAX("Date") FROM {table_name}')
+        ).scalar()
 
-oil = yf.Ticker("NG=F")
-df = oil.history(start=start_date, interval="1d")
+    data = yf.Ticker(ticker)
+    df = data.history(start=start_date, interval="1d")
 
-df = df.reset_index()
-df = df[["Date", "Open", "High", "Low", "Close"]]
-df["Date"] = df["Date"].dt.tz_localize(None)
-df = df[df["Date"] > start_date]
+    df = df.reset_index()
+    df = df[["Date", "Open", "High", "Low", "Close"]]
+    df["Date"] = df["Date"].dt.tz_localize(
+        None
+    )  # remove timezone information to allow processing
+    df = df[df["Date"] > start_date]
 
-df.to_sql("gas", engine, if_exists="append", index=False)
+    df.to_sql(table_name, engine, if_exists="append", index=False)
 
-# wheat
-with engine.connect() as conn:
-    start_date = conn.execute(text('SELECT MAX("Date") FROM wheat')).scalar()
 
-oil = yf.Ticker("ZW=F")
-df = oil.history(start=start_date, interval="1d")
+commodities = [("silver", "SI=F"), ("oil", "BZ=F"), ("gas", "NG=F"), ("wheat", "ZW=F")]
 
-df = df.reset_index()
-df = df[["Date", "Open", "High", "Low", "Close"]]
-df["Date"] = df["Date"].dt.tz_localize(None)
-df = df[df["Date"] > start_date]
 
-df.to_sql("wheat", engine, if_exists="append", index=False)
+def main():
+    for table, ticker in commodities:
+        update_commodity(table, ticker)
 
-# silver
-with engine.connect() as conn:
-    start_date = conn.execute(text('SELECT MAX("Date") FROM silver')).scalar()
 
-oil = yf.Ticker("SI=F")
-df = oil.history(start=start_date, interval="1d")
-
-df = df.reset_index()
-df = df[["Date", "Open", "High", "Low", "Close"]]
-df["Date"] = df["Date"].dt.tz_localize(None)
-df = df[df["Date"] > start_date]
-
-df.to_sql("silver", engine, if_exists="append", index=False)
+if __name__ == "__main__":
+    main()
