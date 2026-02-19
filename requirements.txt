@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2
+pandas
+matplotlib
+yfinance
+selenium
+webdriver-manager
