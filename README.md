@@ -18,7 +18,7 @@ A FastAPI service that provides daily and historical commodity price data (gold,
 1. Clone this repository to your local machine
 2. Install the dependencies
 3. In the data_pipeline folder run load_data.py
-4. Start the FastAPI server: uvicorn main:app --reload
+4. Start the FastAPI server: uvicorn app.main:app --reload
 
 ## API Endpoints
 Gold:    /gold, /gold/history, /gold/analytics
